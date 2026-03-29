@@ -18,8 +18,7 @@ Numerical model for exploring the design space of an **inline filament dryer** f
 ## Installation
 
 ```bash
-pip install -e .            # core (numpy, scipy, matplotlib)
-pip install -e ".[dashboard]"  # adds streamlit + plotly
+pip install -e .            # core
 pip install -e ".[dev]"      # adds ruff
 ```
 
@@ -46,7 +45,6 @@ Adjust chamber length, temperature, material, airflow, and flow rate with sideba
 | Command | Description |
 |---------|-------------|
 | `make install` | Install core dependencies (editable) |
-| `make install-all` | Install everything (dashboard + dev) |
 | `make run` | Run CLI simulation |
 | `make dashboard` | Launch Streamlit dashboard |
 | `make fmt` | Format code with ruff |

@@ -78,7 +78,6 @@ Defined in `pyproject.toml`.
 
 ```bash
 pip install -e .               # core
-pip install -e ".[dashboard]"   # + dashboard
 pip install -e ".[dev]"         # + dev tools
 ```
 

@@ -1,4 +1,4 @@
-.PHONY: run dashboard fmt lint check install install-dev install-all
+.PHONY: run dashboard fmt lint check install install-dev
 
 # Install core dependencies
 install:
@@ -7,10 +7,6 @@ install:
 # Install with dev tools (ruff)
 install-dev:
 	pip install -e ".[dev]"
-
-# Install everything (core + dashboard + dev)
-install-all:
-	pip install -e ".[dashboard,dev]"
 
 # Run the CLI simulation (batch mode, saves PNGs to output/)
 run:

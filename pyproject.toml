@@ -7,10 +7,6 @@ dependencies = [
     "numpy",
     "scipy",
     "matplotlib",
-]
-
-[project.optional-dependencies]
-dashboard = [
     "streamlit",
     "plotly",
 ]
@@ -21,7 +17,10 @@ dev = [
 [project.scripts]
 ifdm = "app.__main__:main"
 
-[tool.setuptools]
+[tool.poetry]
+packages = [{include = "app"}]
+
+[tool.setuptools.packages.find]
 packages = ["app"]
 
 [tool.ruff]
