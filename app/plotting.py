@@ -27,7 +27,7 @@ def plot_radial_profile(result: DryingResult, ax: plt.Axes | None = None) -> plt
     ax.set_title(
         f"{result.filament.material.name} — Radial profile\n"
         f"T={result.dryer.chamber_temp:.0f}°C, "
-        f"L={result.dryer.tube_length*1e3:.0f}mm, "
+        f"L={result.dryer.chamber_length * 1e3:.0f}mm, "
         f"Q={result.filament.flow_rate:.1f}mm³/s, "
         f"t={result.transit_time:.1f}s"
     )
@@ -103,7 +103,7 @@ def plot_material_comparison(
     for res in results:
         r_mm = res.diffusion.r * 1e3
         C_final = res.diffusion.C[:, -1]
-        label = f"{res.filament.material.name} ({res.drying_efficiency*100:.1f}% removed)"
+        label = f"{res.filament.material.name} ({res.drying_efficiency * 100:.1f}% removed)"
         ax.plot(r_mm, C_final * 100, linewidth=2, label=label)
 
     ax.set_xlabel("Radial position [mm]")

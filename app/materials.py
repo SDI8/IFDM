@@ -11,6 +11,7 @@ content for common filament materials. Properties primarily sourced from:
 """
 
 from dataclasses import dataclass
+
 import numpy as np
 
 # Universal gas constant [J/(mol·K)]
@@ -64,20 +65,20 @@ class Material:
 
 PA6 = Material(
     name="PA6 (Nylon 6)",
-    D0=6.5e-5,         # m²/s  (pre-exponential, fitted)
-    Ea=38_000.0,        # J/mol (~38 kJ/mol)
+    D0=6.5e-5,  # m²/s  (pre-exponential, fitted)
+    Ea=38_000.0,  # J/mol (~38 kJ/mol)
     equilibrium_moisture=0.07,  # ~7 wt% at high RH
-    max_temp=85.0,      # °C — below Tg (~47°C dry, higher when moist)
-    density=1140.0,     # kg/m³
+    max_temp=85.0,  # °C — below Tg (~47°C dry, higher when moist)
+    density=1140.0,  # kg/m³
 )
 
 PETG = Material(
     name="PETG",
-    D0=1.2e-5,          # m²/s  (pre-exponential, fitted)
-    Ea=40_000.0,        # J/mol (~40 kJ/mol)
+    D0=1.2e-5,  # m²/s  (pre-exponential, fitted)
+    Ea=40_000.0,  # J/mol (~40 kJ/mol)
     equilibrium_moisture=0.005,  # ~0.5 wt%
-    max_temp=65.0,      # °C
-    density=1270.0,     # kg/m³
+    max_temp=65.0,  # °C
+    density=1270.0,  # kg/m³
 )
 
 PLA = Material(

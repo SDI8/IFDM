@@ -14,16 +14,16 @@ from .dryer import DryerConfig, DryingResult, FilamentConfig, simulate
 from .materials import Material
 
 
-def sweep_tube_length(
+def sweep_chamber_length(
     lengths: NDArray,
     dryer: DryerConfig,
     filament: FilamentConfig,
 ) -> tuple[NDArray, list[DryingResult]]:
-    """Sweep tube length, returning final moisture for each value."""
+    """Sweep chamber length, returning final moisture for each value."""
     moistures = np.empty(len(lengths))
     results = []
     for i, L in enumerate(lengths):
-        cfg = replace(dryer, tube_length=L)
+        cfg = replace(dryer, chamber_length=L)
         res = simulate(cfg, filament)
         moistures[i] = res.final_moisture
         results.append(res)
@@ -73,7 +73,7 @@ def sweep_length_flow_rate(
     dryer: DryerConfig,
     filament: FilamentConfig,
 ) -> NDArray:
-    """2D sweep over tube length and volumetric flow rate.
+    """2D sweep over chamber length and volumetric flow rate.
 
     Returns:
         moisture_grid: shape (len(flow_rates), len(lengths)) — final moisture
@@ -82,7 +82,7 @@ def sweep_length_flow_rate(
     grid = np.empty((len(flow_rates), len(lengths)))
     for j, q in enumerate(flow_rates):
         for i, L in enumerate(lengths):
-            cfg = replace(dryer, tube_length=L)
+            cfg = replace(dryer, chamber_length=L)
             fcfg = FilamentConfig(
                 material=filament.material,
                 diameter=filament.diameter,

@@ -19,6 +19,7 @@ The r = 0 singularity is handled via L'Hôpital's rule:
 """
 
 from dataclasses import dataclass
+
 import numpy as np
 from numpy.typing import NDArray
 from scipy.integrate import solve_ivp
@@ -117,10 +118,7 @@ def solve_radial_diffusion(
             # -D·∂C/∂r|_{r=R} = (Bi·D/R)·(C_s - C_env)
             # β = Bi/R = h_m/D  [1/m]
             beta = biot_mass / R
-            dCdt[-1] = D * (
-                2 * (C[-2] - C[-1]) / dr**2
-                - beta * (C[-1] - C_env) * (2 / dr + 1 / R)
-            )
+            dCdt[-1] = D * (2 * (C[-2] - C[-1]) / dr**2 - beta * (C[-1] - C_env) * (2 / dr + 1 / R))
 
         return dCdt
 
@@ -150,6 +148,7 @@ def solve_radial_diffusion(
 # Analytical solution for validation (constant D, Dirichlet BC)
 # ---------------------------------------------------------------------------
 
+
 def analytical_moisture_fraction(
     D: float,
     R: float,
@@ -167,5 +166,5 @@ def analytical_moisture_fraction(
     # Sum over Bessel roots
     result = np.zeros_like(np.asarray(Fo, dtype=float))
     for k in range(n_terms):
-        result = result + (4.0 / gamma[k] ** 2) * np.exp(-gamma[k] ** 2 * Fo)
+        result = result + (4.0 / gamma[k] ** 2) * np.exp(-(gamma[k] ** 2) * Fo)
     return result

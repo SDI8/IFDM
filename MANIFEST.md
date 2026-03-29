@@ -3,7 +3,7 @@
 ## Purpose
 
 Numerical model for exploring the design parameters of an inline filament dryer
-for 3D printing. The filament passes through a heated tube immediately before
+for 3D printing. The filament passes through a heated chamber immediately before
 entering the printer; this tool simulates how much moisture is removed during
 transit, helping find practical operating parameters.
 
@@ -11,7 +11,7 @@ transit, helping find practical operating parameters.
 
 **1D radial Fickian diffusion** in a cylindrical filament cross-section.
 
-Each "slice" of filament spends `t_transit = tube_length / filament_speed` in
+Each "slice" of filament spends `t_transit = chamber_length / filament_speed` in
 the dryer. During that time, moisture diffuses radially outward:
 
     ∂C/∂t = D(T)/r · ∂/∂r(r · ∂C/∂r)
@@ -21,7 +21,7 @@ the dryer. During that time, moisture diffuses radially outward:
 - **Diffusivity** follows Arrhenius: D(T) = D₀ · exp(-Ea / (R·T))
 - **Thermal equilibrium** assumed: heat diffuses ~100× faster than moisture,
   so filament reaches chamber temperature almost instantly.
-- Axial diffusion neglected (tube length >> filament radius).
+- Axial diffusion neglected (chamber length >> filament radius).
 
 Solved via **method of lines** (radial finite differences → ODE system) using
 `scipy.integrate.solve_ivp` with BDF (implicit stiff solver).
@@ -70,32 +70,38 @@ Refine with experimental data for specific filament brands as needed.
 
 ## Dependencies
 
-- numpy
-- scipy
-- matplotlib
+Defined in `pyproject.toml`.
 
-No other dependencies. Install with: `pip install numpy scipy matplotlib`
+**Core:** numpy, scipy, matplotlib
+**Dashboard:** streamlit, plotly
+**Dev:** ruff
+
+```bash
+pip install -e .               # core
+pip install -e ".[dashboard]"   # + dashboard
+pip install -e ".[dev]"         # + dev tools
+```
 
 ## Usage
 
 ```bash
-python -m app
+python -m app    # or: make run
 ```
 
-Runs the baseline simulation (PA6, 1.75mm, 50mm/s, 80°C, 500mm tube), prints
+Runs the baseline simulation (PA6, 1.75mm, 50mm/s, 80°C, 500mm chamber), prints
 a summary with analytical validation, and generates diagnostic plots:
 1. Radial moisture profile (before/after)
 2. Volume-averaged moisture vs time
 3. Temperature sweep
-4. Tube length sweep
-5. 2D heatmap (tube length × filament speed)
+4. Chamber length sweep
+5. 2D heatmap (chamber length × filament speed)
 6. Material comparison (PA6 vs PETG vs PLA)
 
 ## Key Findings / Reality Check
 
 For PA6 at 80°C (D ≈ 10⁻¹¹ m²/s), drying the center of a 1.75mm filament
 requires Fo ~ 1, i.e., t ~ R²/D ≈ 76,000 s (~21 hours). At 50 mm/s print
-speed, a 500mm tube gives only 10s transit (Fo ≈ 10⁻⁴). Inline drying at
+speed, a 500mm chamber gives only 10s transit (Fo ≈ 10⁻⁴). Inline drying at
 typical print speeds can only dry a thin surface shell. The model quantifies
 exactly how thin and what parameter combinations improve it.
 
@@ -108,7 +114,7 @@ A Robin (convective) BC is needed:
 
     -D · ∂C/∂r |_{r=R} = h_m · (C_s - C_env)
 
-where h_m comes from Sherwood number correlations for the tube geometry:
+where h_m comes from Sherwood number correlations for the chamber geometry:
 
     Sh = h_m · d / D_air_water = f(Re, Sc)
 
@@ -117,8 +123,8 @@ effects. Infrastructure (DryerConfig fields) is already in place.
 
 ### Optimization
 
-Use scipy.optimize to find optimal (tube_length, temperature, speed) given
-constraints (max material temp, target moisture removal, practical tube length).
+Use scipy.optimize to find optimal (chamber_length, temperature, speed) given
+constraints (max material temp, target moisture removal, practical chamber length).
 
 ### Concentration-dependent diffusivity
 

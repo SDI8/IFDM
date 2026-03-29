@@ -10,12 +10,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
+import streamlit as st
 
-from app.dryer import DryerConfig, FilamentConfig, DryingResult, simulate
-from app.materials import MATERIALS, Material
+from app.dryer import DryerConfig, FilamentConfig, simulate
+from app.materials import MATERIALS
 
 st.set_page_config(page_title="Inline Filament Dryer", layout="wide")
 st.title("Inline Filament Dryer Simulator")
@@ -25,20 +25,34 @@ st.title("Inline Filament Dryer Simulator")
 # ---------------------------------------------------------------------------
 st.sidebar.header("Dryer parameters")
 
-tube_length = st.sidebar.slider(
-    "Tube length [mm]", min_value=50, max_value=2000, value=500, step=10,
+chamber_length = st.sidebar.slider(
+    "Chamber length [mm]",
+    min_value=50,
+    max_value=2000,
+    value=500,
+    step=10,
 )
 chamber_temp = st.sidebar.slider(
-    "Chamber temperature [°C]", min_value=30.0, max_value=120.0, value=80.0, step=1.0,
+    "Chamber temperature [°C]",
+    min_value=30.0,
+    max_value=120.0,
+    value=80.0,
+    step=1.0,
 )
 airflow_velocity = st.sidebar.slider(
-    "Airflow velocity [m/s]", min_value=0.1, max_value=5.0, value=1.0, step=0.1,
+    "Airflow velocity [m/s]",
+    min_value=0.1,
+    max_value=5.0,
+    value=1.0,
+    step=0.1,
 )
 
 st.sidebar.header("Filament parameters")
 
 material_key = st.sidebar.selectbox(
-    "Material", options=list(MATERIALS.keys()), index=0,
+    "Material",
+    options=list(MATERIALS.keys()),
+    index=0,
 )
 material = MATERIALS[material_key]
 
@@ -50,16 +64,28 @@ initial_moisture = st.sidebar.slider(
     step=0.1,
 )
 flow_rate = st.sidebar.slider(
-    "Flow rate [mm³/s]", min_value=1.0, max_value=30.0, value=8.0, step=0.5,
+    "Flow rate [mm³/s]",
+    min_value=1.0,
+    max_value=30.0,
+    value=8.0,
+    step=0.5,
 )
 
 st.sidebar.header("Environment")
 
 ambient_humidity = st.sidebar.slider(
-    "Ambient RH [%]", min_value=10, max_value=90, value=50, step=5,
+    "Ambient RH [%]",
+    min_value=10,
+    max_value=90,
+    value=50,
+    step=5,
 )
 ambient_temp = st.sidebar.slider(
-    "Ambient temperature [°C]", min_value=10.0, max_value=40.0, value=25.0, step=1.0,
+    "Ambient temperature [°C]",
+    min_value=10.0,
+    max_value=40.0,
+    value=25.0,
+    step=1.0,
 )
 
 # ---------------------------------------------------------------------------
@@ -67,7 +93,7 @@ ambient_temp = st.sidebar.slider(
 # ---------------------------------------------------------------------------
 
 dryer = DryerConfig(
-    tube_length=tube_length / 1000.0,
+    chamber_length=chamber_length / 1000.0,
     chamber_temp=chamber_temp,
     ambient_humidity=ambient_humidity / 100.0,
     ambient_temp=ambient_temp,
@@ -104,14 +130,24 @@ C_init = result.diffusion.C[:, 0] * 100
 C_final = result.diffusion.C[:, -1] * 100
 
 fig_radial = go.Figure()
-fig_radial.add_trace(go.Scatter(
-    x=r_mm, y=C_init, mode="lines", name="Initial",
-    line=dict(dash="dash", color="gray"),
-))
-fig_radial.add_trace(go.Scatter(
-    x=r_mm, y=C_final, mode="lines", name="After drying",
-    line=dict(width=2, color="#1f77b4"),
-))
+fig_radial.add_trace(
+    go.Scatter(
+        x=r_mm,
+        y=C_init,
+        mode="lines",
+        name="Initial",
+        line=dict(dash="dash", color="gray"),
+    )
+)
+fig_radial.add_trace(
+    go.Scatter(
+        x=r_mm,
+        y=C_final,
+        mode="lines",
+        name="After drying",
+        line=dict(width=2, color="#1f77b4"),
+    )
+)
 fig_radial.update_layout(
     title="Radial moisture profile",
     xaxis_title="Radial position [mm]",
@@ -120,17 +156,23 @@ fig_radial.update_layout(
     height=400,
     margin=dict(t=40, b=40),
 )
-left.plotly_chart(fig_radial, width='stretch')
+left.plotly_chart(fig_radial, width="stretch")
 
 # --- Moisture vs time ---
 fig_time = go.Figure()
-fig_time.add_trace(go.Scatter(
-    x=result.diffusion.t, y=result.diffusion.C_avg * 100,
-    mode="lines", name="Avg moisture",
-    line=dict(width=2, color="#1f77b4"),
-))
+fig_time.add_trace(
+    go.Scatter(
+        x=result.diffusion.t,
+        y=result.diffusion.C_avg * 100,
+        mode="lines",
+        name="Avg moisture",
+        line=dict(width=2, color="#1f77b4"),
+    )
+)
 fig_time.add_hline(
-    y=initial_moisture, line_dash="dash", line_color="gray",
+    y=initial_moisture,
+    line_dash="dash",
+    line_color="gray",
     annotation_text="Initial",
 )
 fig_time.update_layout(
@@ -140,7 +182,7 @@ fig_time.update_layout(
     height=400,
     margin=dict(t=40, b=40),
 )
-right.plotly_chart(fig_time, width='stretch')
+right.plotly_chart(fig_time, width="stretch")
 
 # --- Cross-section moisture heatmap ---
 R_mm = r_mm[-1]
@@ -154,21 +196,28 @@ Z = np.interp(R_grid, r_mm, C_final, right=np.nan)
 # Mask outside the filament circle
 Z[R_grid > R_mm] = np.nan
 
-fig_cross = go.Figure(data=go.Heatmap(
-    x=xy, y=xy, z=Z,
-    colorscale="Blues", colorbar_title="wt%",
-    zmin=0, zmax=float(C_init.max()),
-    hovertemplate="x: %{x:.3f} mm<br>y: %{y:.3f} mm<br>Moisture: %{z:.3f} wt%<extra></extra>",
-))
+fig_cross = go.Figure(
+    data=go.Heatmap(
+        x=xy,
+        y=xy,
+        z=Z,
+        colorscale="Blues",
+        colorbar_title="wt%",
+        zmin=0,
+        zmax=float(C_init.max()),
+        hovertemplate="x: %{x:.3f} mm<br>y: %{y:.3f} mm<br>Moisture: %{z:.3f} wt%<extra></extra>",
+    )
+)
 fig_cross.update_layout(
     title="Filament cross-section — moisture after drying",
-    xaxis_title="[mm]", yaxis_title="[mm]",
+    xaxis_title="[mm]",
+    yaxis_title="[mm]",
     xaxis=dict(scaleanchor="y", constrain="domain"),
     yaxis=dict(constrain="domain"),
     height=480,
     margin=dict(t=40, b=40),
 )
-st.plotly_chart(fig_cross, width='stretch')
+st.plotly_chart(fig_cross, width="stretch")
 
 # ---------------------------------------------------------------------------
 # Material comparison (expandable)
@@ -186,11 +235,15 @@ with st.expander("Compare all materials at current dryer settings"):
         r_mm_cmp = res.diffusion.r * 1e3
         C_final_cmp = res.diffusion.C[:, -1] * 100
         eff = res.drying_efficiency * 100
-        fig_cmp.add_trace(go.Scatter(
-            x=r_mm_cmp, y=C_final_cmp, mode="lines",
-            name=f"{mat.name} ({eff:.1f}% removed)",
-            line=dict(width=2),
-        ))
+        fig_cmp.add_trace(
+            go.Scatter(
+                x=r_mm_cmp,
+                y=C_final_cmp,
+                mode="lines",
+                name=f"{mat.name} ({eff:.1f}% removed)",
+                line=dict(width=2),
+            )
+        )
     fig_cmp.update_layout(
         title="Material comparison — Radial profiles after drying",
         xaxis_title="Radial position [mm]",
@@ -199,7 +252,7 @@ with st.expander("Compare all materials at current dryer settings"):
         height=450,
         margin=dict(t=40, b=40),
     )
-    st.plotly_chart(fig_cmp, width='stretch')
+    st.plotly_chart(fig_cmp, width="stretch")
 
 # ---------------------------------------------------------------------------
 # Detailed summary
