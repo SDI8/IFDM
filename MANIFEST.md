@@ -117,11 +117,13 @@ filament cross-section moisture heatmap and material comparison view.
 
 ## Key Findings / Reality Check
 
-For PA6 at 80°C (D ≈ 10⁻¹¹ m²/s), drying the center of a 1.75mm filament
-requires Fo ~ 1, i.e., t ~ R²/D ≈ 76,000 s (~21 hours). At 50 mm/s print
-speed, a 500mm chamber gives only 10s transit (Fo ≈ 10⁻⁴). Inline drying at
-typical print speeds can only dry a thin surface shell. The model quantifies
-exactly how thin and what parameter combinations improve it.
+For PA6 at 80°C (D ≈ 1.6×10⁻¹⁰ m²/s), drying the center of a 1.75mm filament
+requires Fo ~ 1, i.e., t ~ R²/D ≈ 4,900 s (~1.4 hours). At 8 mm³/s volumetric
+flow rate (3.3 mm/s linear speed), a 500mm chamber gives ~150s transit
+(Fo ≈ 0.03). The baseline simulation removes ~1.0 wt% (from 3.0% to 2.0%,
+33.5% drying efficiency), but this is predominantly surface-layer drying. The
+model quantifies the radial moisture profile and what parameter combinations
+improve penetration depth.
 
 ## Planned Enhancements
 
