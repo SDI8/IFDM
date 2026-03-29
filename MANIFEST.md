@@ -17,7 +17,17 @@ the dryer. During that time, moisture diffuses radially outward:
     ∂C/∂t = D(T)/r · ∂/∂r(r · ∂C/∂r)
 
 - **Symmetry BC** at center (r = 0): ∂C/∂r = 0
-- **Surface BC** at r = R: C = C_env (Dirichlet — assumes perfectly dry air)
+- **Surface BC** at r = R: Robin (convective) boundary condition:
+
+      -D · ∂C/∂r |_{r=R} = h_m · (C_s - C_env)
+
+  where h_m is the convective mass transfer coefficient derived from a
+  Sherwood number correlation (Churchill–Bernstein for crossflow over a
+  cylinder). The mass-transfer Biot number Bi_m = h_m·R/D controls how
+  close the surface BC is to the ideal Dirichlet limit (Bi → ∞).
+- **Surface equilibrium**: C_env = M_sat × RH_chamber, using a linear
+  sorption isotherm. Chamber RH is computed from ambient conditions via
+  psychrometrics (constant absolute humidity, rising saturation pressure).
 - **Diffusivity** follows Arrhenius: D(T) = D₀ · exp(-Ea / (R·T))
 - **Thermal equilibrium** assumed: heat diffuses ~100× faster than moisture,
   so filament reaches chamber temperature almost instantly.
@@ -37,7 +47,9 @@ Solved via **method of lines** (radial finite differences → ODE system) using
 
 Numerical results are compared against the **Crank (1975) analytical series
 solution** for constant-D, Dirichlet-BC cylinder drying (Bessel function roots).
-Agreement is typically <0.5% with 50 radial grid points.
+At high Bi (typical for forced convection), the Robin BC reduces to the
+Dirichlet limit and agreement with the analytical solution is <0.5% with
+50 radial grid points.
 
 ## Project Structure
 
@@ -47,8 +59,10 @@ app/
   materials.py      Material dataclass + property database (PA6, PETG, PLA, …)
   model.py          Core 1D radial diffusion solver (method of lines + solve_ivp)
   dryer.py          DryerConfig, FilamentConfig, simulate(), DryingResult
+                    Air properties, psychrometrics, Sherwood/Biot calculation
   plotting.py       Matplotlib visualizations (profiles, sweeps, heatmaps)
   experiments.py    Parameter sweep and material comparison helpers
+  dashboard.py      Interactive Streamlit dashboard (Plotly charts)
 ```
 
 ## Material Database
@@ -72,12 +86,11 @@ Refine with experimental data for specific filament brands as needed.
 
 Defined in `pyproject.toml`.
 
-**Core:** numpy, scipy, matplotlib
-**Dashboard:** streamlit, plotly
+**Core:** numpy, scipy, matplotlib, streamlit, plotly
 **Dev:** ruff
 
 ```bash
-pip install -e .               # core
+pip install -e .               # core + dashboard
 pip install -e ".[dev]"         # + dev tools
 ```
 
@@ -87,14 +100,20 @@ pip install -e ".[dev]"         # + dev tools
 python -m app    # or: make run
 ```
 
-Runs the baseline simulation (PA6, 1.75mm, 50mm/s, 80°C, 500mm chamber), prints
-a summary with analytical validation, and generates diagnostic plots:
+Runs the baseline simulation (PA6, 1.75mm, 8mm³/s flow rate, 80°C, 500mm
+chamber), prints a summary with analytical validation, and generates diagnostic
+plots:
 1. Radial moisture profile (before/after)
 2. Volume-averaged moisture vs time
 3. Temperature sweep
 4. Chamber length sweep
-5. 2D heatmap (chamber length × filament speed)
+5. 2D heatmap (chamber length × flow rate)
 6. Material comparison (PA6 vs PETG vs PLA)
+
+The interactive **Streamlit dashboard** (`make dashboard`) provides real-time
+controls for all parameters (chamber length, temperature, airflow velocity,
+material, flow rate, ambient conditions) with Plotly charts including a
+filament cross-section moisture heatmap and material comparison view.
 
 ## Key Findings / Reality Check
 
@@ -105,20 +124,6 @@ typical print speeds can only dry a thin surface shell. The model quantifies
 exactly how thin and what parameter combinations improve it.
 
 ## Planned Enhancements
-
-### Convective mass transfer BC (required)
-
-The current Dirichlet BC (C_surface = 0) assumes infinite surface mass transfer.
-A Robin (convective) BC is needed:
-
-    -D · ∂C/∂r |_{r=R} = h_m · (C_s - C_env)
-
-where h_m comes from Sherwood number correlations for the chamber geometry:
-
-    Sh = h_m · d / D_air_water = f(Re, Sc)
-
-This is essential for properly modeling airflow velocity and chamber humidity
-effects. Infrastructure (DryerConfig fields) is already in place.
 
 ### Optimization
 
@@ -134,6 +139,22 @@ naturally; needs per-material data.
 
 1. Aniskevich, A., Bulderberga, O., & Stankevics, L. (2023). "Moisture Sorption
    and Degradation of Polymer Filaments Used in 3D Printing." Polymers 15(12):2600.
+   — Primary source for filament material properties (D₀, Ea, equilibrium
+   moisture content) in the material database.
 2. Crank, J. (1975). The Mathematics of Diffusion. Oxford University Press.
-3. pyDAMPF (github.com/govarguz/pyDAMPF) — Reviewed; not applicable. AFM simulator
-   for nanoscale tip-sample interactions under variable RH, not bulk moisture diffusion.
+   — Theoretical basis for the 1D radial Fickian diffusion model and the
+   analytical Bessel-function series solution used for numerical validation.
+3. Churchill, S. W. & Bernstein, M. (1977). "A Correlating Equation for Forced
+   Convection from Gases and Liquids to a Circular Cylinder in Crossflow."
+   J. Heat Transfer 99(2):300–306.
+   — Sherwood number correlation (adapted from the Nusselt form) used to
+   estimate the convective mass transfer coefficient h_m at the filament surface.
+4. Alduchov, O. A. & Eskridge, R. E. (1996). "Improved Magnus Form Approximation
+   of Saturation Vapor Pressure." J. Appl. Meteor. 35(4):601–609.
+   — Saturation vapor pressure formula used to compute chamber RH from
+   ambient conditions (psychrometric heating at constant absolute humidity).
+5. Fuller, E. N., Schettler, P. D. & Giddings, J. C. (1966). "A New Method for
+   Prediction of Binary Gas-Phase Diffusion Coefficients." Ind. Eng. Chem.
+   58(5):18–27.
+   — Temperature-dependent correlation for water vapor diffusivity in air,
+   needed to evaluate the Schmidt and Sherwood numbers.

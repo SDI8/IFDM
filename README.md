@@ -4,13 +4,15 @@ Numerical model for exploring the design space of an **inline filament dryer** f
 
 ## Physics
 
-1D radial Fickian diffusion in a cylindrical cross-section, solved via method of lines (`scipy.integrate.solve_ivp`, BDF). Arrhenius-type diffusivity, validated against the Crank (1975) analytical series solution.
+1D radial Fickian diffusion in a cylindrical cross-section, solved via method of lines (`scipy.integrate.solve_ivp`, BDF). Arrhenius-type diffusivity with a Robin (convective) surface boundary condition — the mass-transfer coefficient is computed from a Sherwood number correlation (Churchill–Bernstein), and chamber humidity is derived from ambient conditions via psychrometrics. Validated against the Crank (1975) analytical series solution (< 0.5 % error with default grid).
 
 ## Current state
 
 - Core diffusion solver and dryer simulation working.
+- Convective mass transfer boundary condition (Robin BC) with Sherwood/Biot calculation.
 - Material database with order-of-magnitude properties for PA6, PETG, PLA, TPU, PVA, ABS.
-- Parameter sweeps (temperature, chamber length, filament speed) and heatmap generation.
+- Parameter sweeps (temperature, chamber length, flow rate) and heatmap generation.
+- Interactive Streamlit dashboard with real-time Plotly charts.
 - Analytical validation (< 0.5 % error with default grid).
 
 **Key takeaway:** at typical print speeds, inline drying can only remove moisture from a thin surface shell — the model quantifies exactly how thin.
@@ -18,11 +20,9 @@ Numerical model for exploring the design space of an **inline filament dryer** f
 ## Installation
 
 ```bash
-pip install -e .            # core
+pip install -e .             # core + dashboard
 pip install -e ".[dev]"      # adds ruff
 ```
-
-Or all at once: `pip install -e ".[dashboard,dev]"`
 
 ## Usage
 

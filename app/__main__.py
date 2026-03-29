@@ -59,9 +59,7 @@ def run_default_experiment():
     print(f"  Numerical  (M-M_eq)/(M₀-M_eq) = {frac_numerical:.6f}")
     print(f"  Analytical (M-M_eq)/(M₀-M_eq) = {frac_analytical:.6f}")
     print(
-        f"  Relative error                 = {
-            abs(frac_numerical - frac_analytical) / frac_analytical * 100:.3f\
-        } %"
+        f"  Relative error                 = {abs(frac_numerical - frac_analytical) / frac_analytical * 100:.3f} %"
     )
 
     return result
