@@ -187,17 +187,13 @@ class DryingResult:
             f"Filament speed:     {self.filament.speed * 1e3:.2f} mm/s (linear)",
             f"Chamber length:     {self.dryer.chamber_length * 1e3:.0f} mm",
             f"Chamber temp:       {self.dryer.chamber_temp:.0f} °C",
-            f"Ambient conditions: {self.dryer.ambient_temp:.0f} °C, {
-                self.dryer.ambient_humidity * 100:.0f\
-            }% RH",
+            f"Ambient conditions: {self.dryer.ambient_temp:.0f} °C, {self.dryer.ambient_humidity * 100:.0f}% RH",
             f"Chamber humidity:   {self.dryer.chamber_humidity * 100:.2f}% RH",
             f"Airflow velocity:   {self.dryer.airflow_velocity:.1f} m/s",
             f"Transit time:       {self.transit_time:.2f} s",
             f"Fourier number:     {self.fourier_number:.4e}",
             f"Biot (mass xfer):   {self.biot_mass:.2e}",
-            f"D(T):               {
-                self.filament.material.diffusivity(self.dryer.chamber_temp):.3e\
-            } m²/s",
+            f"D(T):               {self.filament.material.diffusivity(self.dryer.chamber_temp):.3e} m²/s",
             f"Initial moisture:   {self.initial_moisture * 100:.3f} wt%",
             f"Final moisture:     {self.final_moisture * 100:.3f} wt%",
             f"Moisture removed:   {self.moisture_removed * 100:.4f} wt%",

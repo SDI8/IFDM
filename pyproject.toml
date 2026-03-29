@@ -21,8 +21,8 @@ dev = [
 [project.scripts]
 ifdm = "app.__main__:main"
 
-[tool.setuptools.packages.find]
-include = ["app*"]
+[tool.setuptools]
+packages = ["app"]
 
 [tool.ruff]
 line-length = 100
