@@ -2,7 +2,7 @@
 Parameter sweep and comparison experiments.
 
 Provides helpers to sweep one or two parameters while holding others fixed,
-producing arrays of results suitable for plotting.
+producing arrays of results suitable for analysis.
 """
 
 from dataclasses import replace

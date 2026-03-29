@@ -60,9 +60,11 @@ app/
   model.py          Core 1D radial diffusion solver (method of lines + solve_ivp)
   dryer.py          DryerConfig, FilamentConfig, simulate(), DryingResult
                     Air properties, psychrometrics, Sherwood/Biot calculation
-  plotting.py       Matplotlib visualizations (profiles, sweeps, heatmaps)
   experiments.py    Parameter sweep and material comparison helpers
-  dashboard.py      Interactive Streamlit dashboard (Plotly charts)
+
+dashboard/
+  __main__.py       Entry point — run with `python -m dashboard`
+  app.py            Interactive Streamlit dashboard (Plotly charts)
 ```
 
 ## Material Database
@@ -86,7 +88,7 @@ Refine with experimental data for specific filament brands as needed.
 
 Defined in `pyproject.toml`.
 
-**Core:** numpy, scipy, matplotlib, streamlit, plotly
+**Core:** numpy, scipy, streamlit, plotly
 **Dev:** ruff
 
 ```bash
@@ -101,14 +103,7 @@ python -m app    # or: make run
 ```
 
 Runs the baseline simulation (PA6, 1.75mm, 8mm³/s flow rate, 80°C, 500mm
-chamber), prints a summary with analytical validation, and generates diagnostic
-plots:
-1. Radial moisture profile (before/after)
-2. Volume-averaged moisture vs time
-3. Temperature sweep
-4. Chamber length sweep
-5. 2D heatmap (chamber length × flow rate)
-6. Material comparison (PA6 vs PETG vs PLA)
+chamber) and prints a summary with analytical validation.
 
 The interactive **Streamlit dashboard** (`make dashboard`) provides real-time
 controls for all parameters (chamber length, temperature, airflow velocity,
