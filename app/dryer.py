@@ -15,6 +15,82 @@ from .materials import Material
 def _cross_section_area(diameter: float) -> float:
     """Cross-sectional area of a circular filament [m²]."""
     return np.pi * (diameter / 2.0) ** 2
+
+
+# ---------------------------------------------------------------------------
+# Air properties and psychrometrics
+# ---------------------------------------------------------------------------
+
+def saturation_vapor_pressure(T_celsius: float) -> float:
+    """Water saturation vapor pressure [Pa] (Alduchov & Eskridge 1996)."""
+    return 610.94 * np.exp(17.625 * T_celsius / (243.04 + T_celsius))
+
+
+def compute_chamber_rh(
+    ambient_rh: float, ambient_temp: float, chamber_temp: float,
+) -> float:
+    """RH in the dryer after heating ambient intake air.
+
+    Heating air at constant absolute humidity lowers RH because
+    saturation vapor pressure rises with temperature.
+    """
+    return ambient_rh * saturation_vapor_pressure(ambient_temp) / saturation_vapor_pressure(chamber_temp)
+
+
+def air_density(T_celsius: float) -> float:
+    """Dry-air density at 1 atm [kg/m³]."""
+    return 101325.0 / (287.058 * (T_celsius + 273.15))
+
+
+def air_dynamic_viscosity(T_celsius: float) -> float:
+    """Dynamic viscosity of air [Pa·s] (Sutherland's law)."""
+    T = T_celsius + 273.15
+    return 1.458e-6 * T**1.5 / (T + 110.4)
+
+
+def water_vapor_diffusivity_in_air(T_celsius: float) -> float:
+    """Diffusivity of water vapor in air [m²/s] (Fuller et al.)."""
+    T = T_celsius + 273.15
+    return 2.16e-5 * (T / 273.15) ** 1.8
+
+
+def compute_sherwood(Re: float, Sc: float) -> float:
+    """Sherwood number for crossflow over a cylinder (Churchill-Bernstein)."""
+    Sh = 0.3 + (0.62 * Re**0.5 * Sc**(1 / 3)) / (
+        1 + (0.4 / Sc) ** (2 / 3)
+    ) ** 0.25
+    if Re > 282_000:
+        Sh *= (1 + (Re / 282_000) ** (5 / 8)) ** (4 / 5)
+    return Sh
+
+
+def compute_mass_transfer_biot(
+    D_polymer: float,
+    filament_diameter: float,
+    airflow_velocity: float,
+    chamber_temp: float,
+) -> float:
+    """Biot number for convective mass transfer at the filament surface.
+
+    Bi_m = h_m · R / D_polymer, where h_m is estimated from the
+    Churchill-Bernstein (Sherwood) correlation for crossflow over a
+    cylinder.
+    """
+    d = filament_diameter
+    R = d / 2.0
+
+    rho = air_density(chamber_temp)
+    mu = air_dynamic_viscosity(chamber_temp)
+    D_wa = water_vapor_diffusivity_in_air(chamber_temp)
+
+    Re = rho * airflow_velocity * d / mu
+    Sc = mu / (rho * D_wa)
+    Sh = compute_sherwood(Re, Sc)
+
+    h_m = Sh * D_wa / d  # convective mass transfer coeff [m/s]
+    return h_m * R / D_polymer
+
+
 from .model import DiffusionResult, solve_radial_diffusion, volume_average
 
 
@@ -25,18 +101,24 @@ class DryerConfig:
     Attributes:
         tube_length: Length of the heated zone [m].
         chamber_temp: Air temperature inside the tube [°C].
-        chamber_humidity: Relative humidity of drying air (0–1).
-            Currently unused (Dirichlet BC assumes dry air). Reserved for
-            future convective BC implementation.
-        airflow_velocity: Air velocity in tube [m/s].
-            Currently unused. Reserved for future Sherwood-number-based
-            convective mass-transfer BC.
+        ambient_humidity: Relative humidity of the intake air at ambient_temp
+            (0–1, e.g. 0.50 = 50% RH).
+        ambient_temp: Temperature of the intake air [°C].
+        airflow_velocity: Air velocity over the filament inside the tube [m/s].
     """
 
     tube_length: float = 0.5          # m  (500 mm default)
     chamber_temp: float = 80.0        # °C
-    chamber_humidity: float = 0.0     # 0 = perfectly dry air
-    airflow_velocity: float = 1.0     # m/s  (reserved for future use)
+    ambient_humidity: float = 0.50    # 50% RH at ambient temp
+    ambient_temp: float = 25.0        # °C  (room temperature)
+    airflow_velocity: float = 1.0     # m/s
+
+    @property
+    def chamber_humidity(self) -> float:
+        """RH inside the chamber after heating ambient intake air."""
+        return compute_chamber_rh(
+            self.ambient_humidity, self.ambient_temp, self.chamber_temp,
+        )
 
 
 @dataclass
@@ -87,6 +169,7 @@ class DryingResult:
     moisture_removed: float
     drying_efficiency: float
     fourier_number: float
+    biot_mass: float
     filament: FilamentConfig
     dryer: DryerConfig
 
@@ -99,8 +182,12 @@ class DryingResult:
             f"Filament speed:     {self.filament.speed * 1e3:.2f} mm/s (linear)",
             f"Tube length:        {self.dryer.tube_length * 1e3:.0f} mm",
             f"Chamber temp:       {self.dryer.chamber_temp:.0f} °C",
+            f"Ambient conditions: {self.dryer.ambient_temp:.0f} °C, {self.dryer.ambient_humidity * 100:.0f}% RH",
+            f"Chamber humidity:   {self.dryer.chamber_humidity * 100:.2f}% RH",
+            f"Airflow velocity:   {self.dryer.airflow_velocity:.1f} m/s",
             f"Transit time:       {self.transit_time:.2f} s",
             f"Fourier number:     {self.fourier_number:.4e}",
+            f"Biot (mass xfer):   {self.biot_mass:.2e}",
             f"D(T):               {self.filament.material.diffusivity(self.dryer.chamber_temp):.3e} m²/s",
             f"Initial moisture:   {self.initial_moisture * 100:.3f} wt%",
             f"Final moisture:     {self.final_moisture * 100:.3f} wt%",
@@ -125,9 +212,14 @@ def simulate(
     R = filament.diameter / 2.0
     D = filament.material.diffusivity(dryer.chamber_temp)
 
-    # Environmental moisture concentration at filament surface.
-    # For the Dirichlet model: C_env ≈ equilibrium moisture * RH
+    # Equilibrium moisture at the surface for the chamber air conditions.
+    # Linear sorption isotherm: C_eq = M_sat × RH_chamber
     C_env = filament.material.equilibrium_moisture * dryer.chamber_humidity
+
+    # Mass-transfer Biot number from Sherwood correlation
+    biot = compute_mass_transfer_biot(
+        D, filament.diameter, dryer.airflow_velocity, dryer.chamber_temp,
+    )
 
     diff = solve_radial_diffusion(
         R=R,
@@ -137,6 +229,7 @@ def simulate(
         C_env=C_env,
         N=N,
         t_eval_count=t_eval_count,
+        biot_mass=biot,
     )
 
     final_moisture = diff.C_avg[-1]
@@ -152,6 +245,7 @@ def simulate(
         moisture_removed=moisture_removed,
         drying_efficiency=efficiency,
         fourier_number=Fo,
+        biot_mass=biot,
         filament=filament,
         dryer=dryer,
     )

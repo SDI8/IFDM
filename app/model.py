@@ -10,8 +10,8 @@ Governing equation (Fick's second law, cylindrical symmetry):
 
 Boundary conditions:
     r = 0:  ∂C/∂r = 0            (symmetry)
-    r = R:  C = C_env             (Dirichlet, ideal dry-air surface)
-         or -D·∂C/∂r = h_m·(C_s - C_env)  (Robin / convective — future)
+    r = R:  C = C_env             (Dirichlet, when biot_mass is None)
+         or -D·∂C/∂r = h_m·(C_s - C_env)  (Robin / convective, when biot_mass is given)
 
 The r = 0 singularity is handled via L'Hôpital's rule:
     lim_{r→0} (1/r)·∂C/∂r = ∂²C/∂r²
@@ -59,6 +59,7 @@ def solve_radial_diffusion(
     C_env: float = 0.0,
     N: int = 50,
     t_eval_count: int = 200,
+    biot_mass: float | None = None,
 ) -> DiffusionResult:
     """Solve 1D radial diffusion in a cylinder cross-section.
 
@@ -70,6 +71,9 @@ def solve_radial_diffusion(
         C_env: Environmental moisture concentration at surface (mass fraction).
         N: Number of radial grid points (including center and surface).
         t_eval_count: Number of time points in output.
+        biot_mass: Mass-transfer Biot number Bi = h_m·R/D. When None, a
+            Dirichlet BC (C_surface = C_env) is used. When provided, a
+            Robin (convective) BC is applied at the surface.
 
     Returns:
         DiffusionResult with radial profiles over time.
@@ -80,7 +84,9 @@ def solve_radial_diffusion(
 
     # Initial condition: uniform moisture
     C0 = np.full(N, C_init)
-    C0[-1] = C_env  # Surface BC applied immediately
+    if biot_mass is None:
+        C0[-1] = C_env  # Dirichlet: surface fixed immediately
+    # Robin: surface starts at C_init and evolves via the BC
 
     def rhs(t, C):
         """Right-hand side of the ODE system dC/dt = f(C)."""
@@ -102,8 +108,19 @@ def solve_radial_diffusion(
         # (from symmetry: C[-1] = C[1], so the standard central diff gives this)
         dCdt[0] = 2 * D * 2 * (C[1] - C[0]) / dr**2
 
-        # --- Surface node (r = R): Dirichlet BC ---
-        dCdt[-1] = 0.0  # C at surface is fixed
+        # --- Surface node (r = R) ---
+        if biot_mass is None:
+            # Dirichlet BC: C at surface is fixed
+            dCdt[-1] = 0.0
+        else:
+            # Robin BC via ghost-node method:
+            # -D·∂C/∂r|_{r=R} = (Bi·D/R)·(C_s - C_env)
+            # β = Bi/R = h_m/D  [1/m]
+            beta = biot_mass / R
+            dCdt[-1] = D * (
+                2 * (C[-2] - C[-1]) / dr**2
+                - beta * (C[-1] - C_env) * (2 / dr + 1 / R)
+            )
 
         return dCdt
 

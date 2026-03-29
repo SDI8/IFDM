@@ -5,6 +5,8 @@ Provides helpers to sweep one or two parameters while holding others fixed,
 producing arrays of results suitable for plotting.
 """
 
+from dataclasses import replace
+
 import numpy as np
 from numpy.typing import NDArray
 
@@ -21,12 +23,7 @@ def sweep_tube_length(
     moistures = np.empty(len(lengths))
     results = []
     for i, L in enumerate(lengths):
-        cfg = DryerConfig(
-            tube_length=L,
-            chamber_temp=dryer.chamber_temp,
-            chamber_humidity=dryer.chamber_humidity,
-            airflow_velocity=dryer.airflow_velocity,
-        )
+        cfg = replace(dryer, tube_length=L)
         res = simulate(cfg, filament)
         moistures[i] = res.final_moisture
         results.append(res)
@@ -42,12 +39,7 @@ def sweep_temperature(
     moistures = np.empty(len(temperatures))
     results = []
     for i, T in enumerate(temperatures):
-        cfg = DryerConfig(
-            tube_length=dryer.tube_length,
-            chamber_temp=T,
-            chamber_humidity=dryer.chamber_humidity,
-            airflow_velocity=dryer.airflow_velocity,
-        )
+        cfg = replace(dryer, chamber_temp=T)
         res = simulate(cfg, filament)
         moistures[i] = res.final_moisture
         results.append(res)
@@ -90,12 +82,7 @@ def sweep_length_flow_rate(
     grid = np.empty((len(flow_rates), len(lengths)))
     for j, q in enumerate(flow_rates):
         for i, L in enumerate(lengths):
-            cfg = DryerConfig(
-                tube_length=L,
-                chamber_temp=dryer.chamber_temp,
-                chamber_humidity=dryer.chamber_humidity,
-                airflow_velocity=dryer.airflow_velocity,
-            )
+            cfg = replace(dryer, tube_length=L)
             fcfg = FilamentConfig(
                 material=filament.material,
                 diameter=filament.diameter,

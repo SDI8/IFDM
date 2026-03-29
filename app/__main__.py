@@ -44,16 +44,22 @@ def run_default_experiment():
     print("=" * 60)
 
     # --- Validate against analytical solution ---
+    # The Crank series gives (M(t) - M_eq) / (M₀ - M_eq) for a cylinder
+    # with constant surface concentration C_env.  Our Robin BC with
+    # Bi >> 1 should match closely.
     R = filament.diameter / 2.0
     D = PA6.diffusivity(dryer.chamber_temp)
-    frac_numerical = result.final_moisture / result.initial_moisture
+    C_env = PA6.equilibrium_moisture * dryer.chamber_humidity
+    frac_numerical = (result.final_moisture - C_env) / (result.initial_moisture - C_env)
     frac_analytical = float(
         analytical_moisture_fraction(D, R, result.transit_time)
     )
-    print(f"\nValidation (Dirichlet BC, constant D):")
-    print(f"  Numerical  M/M₀ = {frac_numerical:.6f}")
-    print(f"  Analytical M/M₀ = {frac_analytical:.6f}")
-    print(f"  Relative error  = {abs(frac_numerical - frac_analytical) / frac_analytical * 100:.3f} %")
+    print(f"\nValidation vs analytical (Dirichlet BC, constant D):")
+    print(f"  (Bi_m = {result.biot_mass:.0e} → Robin BC ≈ Dirichlet)")
+    print(f"  C_env = {C_env*100:.3f} wt% (equilibrium at chamber RH)")
+    print(f"  Numerical  (M-M_eq)/(M₀-M_eq) = {frac_numerical:.6f}")
+    print(f"  Analytical (M-M_eq)/(M₀-M_eq) = {frac_analytical:.6f}")
+    print(f"  Relative error                 = {abs(frac_numerical - frac_analytical) / frac_analytical * 100:.3f} %")
 
     return result
 
