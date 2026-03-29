@@ -17,6 +17,17 @@ Numerical model for exploring the design space of an **inline filament dryer** f
 
 ## Usage
 
+### Interactive dashboard
+
+```bash
+pip install numpy scipy matplotlib streamlit plotly
+streamlit run app/dashboard.py
+```
+
+Adjust tube length, temperature, material, airflow, and flow rate with sidebar controls. Charts update in real time.
+
+### Batch / CLI (PNG export)
+
 ```bash
 pip install numpy scipy matplotlib
 python -m app
