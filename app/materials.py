@@ -68,7 +68,7 @@ PA6 = Material(
     D0=6.5e-5,  # m²/s  (pre-exponential, fitted)
     Ea=38_000.0,  # J/mol (~38 kJ/mol)
     equilibrium_moisture=0.07,  # ~7 wt% at high RH
-    max_temp=85.0,  # °C — below Tg (~47°C dry, higher when moist)
+    max_temp=95.0,  # °C
     density=1140.0,  # kg/m³
 )
 
@@ -86,7 +86,7 @@ PLA = Material(
     D0=1.0e-5,
     Ea=40_000.0,
     equilibrium_moisture=0.008,  # ~0.8 wt%
-    max_temp=55.0,
+    max_temp=65.0,
     density=1240.0,
 )
 
@@ -95,7 +95,7 @@ TPU = Material(
     D0=2.0e-5,
     Ea=38_000.0,
     equilibrium_moisture=0.012,  # ~1.2 wt%
-    max_temp=50.0,
+    max_temp=70.0,
     density=1210.0,
 )
 
@@ -104,7 +104,7 @@ PVA = Material(
     D0=8.0e-5,
     Ea=36_000.0,
     equilibrium_moisture=0.10,  # ~10 wt%
-    max_temp=60.0,
+    max_temp=50.0,
     density=1190.0,
 )
 
@@ -113,7 +113,7 @@ ABS = Material(
     D0=0.8e-5,
     Ea=38_000.0,
     equilibrium_moisture=0.004,  # ~0.4 wt%
-    max_temp=80.0,
+    max_temp=100.0,
     density=1040.0,
 )
 

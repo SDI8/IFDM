@@ -65,6 +65,11 @@ app/
 dashboard/
   __main__.py       Entry point — run with `python -m dashboard`
   app.py            Interactive Streamlit dashboard (Plotly charts)
+
+convergence_study.ipynb      N and t_eval_count parameter convergence analysis
+optimization_study.ipynb     Multi-objective optimization (dlib LIPO+TR global optimizer)
+                             OptimizationConfig, OptimizationResult, optimize()
+                             Convergence, timing, cost breakdown, multi-material comparison
 ```
 
 ## Material Database
@@ -89,10 +94,12 @@ Refine with experimental data for specific filament brands as needed.
 Defined in `pyproject.toml`.
 
 **Core:** numpy, scipy, streamlit, plotly
+**Notebooks:** matplotlib, pandas, dlib-bin
 **Dev:** ruff
 
 ```bash
 pip install -e .               # core + dashboard
+pip install -e ".[notebooks]"   # + notebook dependencies
 pip install -e ".[dev]"         # + dev tools
 ```
 
@@ -120,12 +127,27 @@ flow rate (3.3 mm/s linear speed), a 500mm chamber gives ~150s transit
 model quantifies the radial moisture profile and what parameter combinations
 improve penetration depth.
 
+## Optimization
+
+The `optimization_study.ipynb` notebook finds optimal dryer parameters
+by minimizing a weighted multi-objective cost using `dlib.find_min_global` with 
+analysis of convergence, timing, and cost component behaviour.
+
+**Decision variables:** chamber_length, chamber_temp, airflow_velocity.
+
+**Cost function** — weighted sum of three normalized components:
+- **Moisture** (weight 1.0): `final_moisture / initial_moisture` — fraction remaining.
+- **Length** (weight 0.1): `chamber_length / max_length` — penalizes large chambers.
+- **Energy** (weight 0.1): `(ΔT/ΔT_max) × (v/v_max)²` — proxy for heating
+  (∝ ΔT) and fan power (∝ v²), normalized to [0, 1].
+
+An optional `target_moisture` soft constraint adds a large penalty (100×) when
+the final moisture exceeds the target.
+
+Bounds are user-configurable; the temperature upper bound is automatically
+clamped to `material.max_temp`.
+
 ## Planned Enhancements
-
-### Optimization
-
-Use scipy.optimize to find optimal (chamber_length, temperature, speed) given
-constraints (max material temp, target moisture removal, practical chamber length).
 
 ### Concentration-dependent diffusivity
 

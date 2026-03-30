@@ -101,7 +101,7 @@ filament = FilamentConfig(
     flow_rate=flow_rate,
 )
 
-result = simulate(dryer, filament)
+result = simulate(dryer, filament, N=20, t_eval_count=100)
 
 # ---------------------------------------------------------------------------
 # Key metrics

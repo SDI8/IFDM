@@ -1,8 +1,12 @@
-.PHONY: run dashboard fmt lint check install install-dev
+.PHONY: run dashboard fmt lint check install install-dev install-notebooks
 
 # Install core dependencies
 install:
 	pip install -e .
+
+# Install with notebook dependencies (matplotlib, pandas, dlib)
+install-notebooks:
+	pip install -e ".[notebooks]"
 
 # Install with dev tools (ruff)
 install-dev:
