@@ -12,22 +12,23 @@ Numerical model for exploring the design space of an **inline filament dryer** f
 - Core diffusion solver and dryer simulation working.
 - Convective mass transfer boundary condition (Robin BC) with Sherwood/Biot calculation.
 - Material database with order-of-magnitude properties for PA6, PETG, PLA, TPU, PVA, ABS.
-- Parameter sweeps (temperature, chamber length, flow rate) and heatmap generation.
+- Parameter sweeps (temperature, chamber length, flow rate).
 - Interactive Streamlit dashboard with real-time Plotly charts.
 - Analytical validation (< 0.5 % error with default grid).
-
-**Key takeaway:** at typical print speeds, inline drying can only remove moisture from a thin surface shell — the model quantifies exactly how thin.
+- Convergence study notebook (`convergence_study.ipynb`) — N and t_eval_count analysis.
+- Optimization study notebook (`optimization_study.ipynb`) — multi-objective optimizer with convergence, timing, and cost breakdown analysis.
 
 ## Installation
 
 ```bash
-pip install -e .             # core + dashboard
-pip install -e ".[dev]"      # adds ruff
+pip install -e .               # core + dashboard
+pip install -e ".[notebooks]"   # adds matplotlib, pandas, dlib (for notebooks)
+pip install -e ".[dev]"         # adds ruff
 ```
 
 ## Usage
 
-### Batch / CLI (PNG export)
+### CLI
 
 ```bash
 python -m app   # or: make run
@@ -36,7 +37,8 @@ python -m app   # or: make run
 ### Interactive dashboard
 
 ```bash
-make dashboard  # or: streamlit run app/dashboard.py
+make dashboard  # or: streamlit run dashboard/app.py
+# or: python -m dashboard
 ```
 
 Adjust chamber length, temperature, material, airflow, and flow rate with sidebar controls. Charts update in real time.
@@ -46,7 +48,8 @@ Adjust chamber length, temperature, material, airflow, and flow rate with sideba
 | Command | Description |
 |---------|-------------|
 | `make install` | Install core dependencies (editable) |
-| `make run` | Run CLI simulation |
+| `make install-notebooks` | Install notebook dependencies (matplotlib, pandas, dlib) |
+| `make run` | Run CLI simulation (prints results to stdout) |
 | `make dashboard` | Launch Streamlit dashboard |
 | `make fmt` | Format code with ruff |
 | `make lint` | Lint code with ruff |

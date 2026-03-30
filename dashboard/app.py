@@ -2,13 +2,9 @@
 Interactive Streamlit dashboard for inline filament dryer simulation.
 
 Launch with:
-    streamlit run app/dashboard.py
+    streamlit run dashboard/app.py
+    python -m dashboard
 """
-
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import numpy as np
 import plotly.graph_objects as go
@@ -35,14 +31,14 @@ chamber_length = st.sidebar.slider(
 chamber_temp = st.sidebar.slider(
     "Chamber temperature [°C]",
     min_value=30.0,
-    max_value=120.0,
+    max_value=150.0,
     value=80.0,
-    step=1.0,
+    step=10.0,
 )
 airflow_velocity = st.sidebar.slider(
     "Airflow velocity [m/s]",
     min_value=0.1,
-    max_value=5.0,
+    max_value=10.0,
     value=1.0,
     step=0.1,
 )
@@ -105,7 +101,7 @@ filament = FilamentConfig(
     flow_rate=flow_rate,
 )
 
-result = simulate(dryer, filament)
+result = simulate(dryer, filament, N=20, t_eval_count=100)
 
 # ---------------------------------------------------------------------------
 # Key metrics

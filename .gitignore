@@ -3,3 +3,4 @@ output
 __pycache__
 *.pyc
 *.egg-info
+.ruff_cache

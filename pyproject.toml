@@ -1,14 +1,20 @@
 [project]
 name = "inline-filament-dryer"
-version = "0.1.0"
+version = "0.2.0"
 description = "Numerical model for inline filament dryer design"
 requires-python = ">=3.11"
 dependencies = [
     "numpy",
     "scipy",
-    "matplotlib",
     "streamlit",
     "plotly",
+]
+
+[project.optional-dependencies]
+notebooks = [
+    "matplotlib",
+    "pandas",
+    "dlib-bin",
 ]
 dev = [
     "ruff",
@@ -18,10 +24,10 @@ dev = [
 ifdm = "app.__main__:main"
 
 [tool.poetry]
-packages = [{include = "app"}]
+packages = [{include = "app"}, {include = "dashboard"}]
 
 [tool.setuptools.packages.find]
-packages = ["app"]
+include = ["app", "dashboard"]
 
 [tool.ruff]
 line-length = 100
