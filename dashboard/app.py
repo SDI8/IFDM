@@ -19,30 +19,6 @@ st.title("Inline Filament Dryer Simulator")
 # ---------------------------------------------------------------------------
 # Sidebar controls
 # ---------------------------------------------------------------------------
-st.sidebar.header("Dryer parameters")
-
-chamber_length = st.sidebar.slider(
-    "Chamber length [mm]",
-    min_value=50,
-    max_value=2000,
-    value=500,
-    step=10,
-)
-chamber_temp = st.sidebar.slider(
-    "Chamber temperature [°C]",
-    min_value=30.0,
-    max_value=150.0,
-    value=80.0,
-    step=10.0,
-)
-airflow_velocity = st.sidebar.slider(
-    "Airflow velocity [m/s]",
-    min_value=0.1,
-    max_value=10.0,
-    value=1.0,
-    step=0.1,
-)
-
 st.sidebar.header("Filament parameters")
 
 material_key = st.sidebar.selectbox(
@@ -65,6 +41,30 @@ flow_rate = st.sidebar.slider(
     max_value=30.0,
     value=8.0,
     step=0.5,
+)
+
+st.sidebar.header("Dryer parameters")
+
+chamber_length = st.sidebar.slider(
+    "Chamber length [mm]",
+    min_value=100,
+    max_value=10000,
+    value=500,
+    step=100,
+)
+chamber_temp = st.sidebar.slider(
+    "Chamber temperature [°C]",
+    min_value=30.0,
+    max_value=material.max_temp + 20.0,
+    value=material.max_temp,
+    step=5.0,
+)
+airflow_velocity = st.sidebar.slider(
+    "Airflow velocity [m/s]",
+    min_value=0.05,
+    max_value=5.0,
+    value=1.0,
+    step=0.05,
 )
 
 st.sidebar.header("Environment")
