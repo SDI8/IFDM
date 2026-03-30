@@ -54,8 +54,8 @@ Dirichlet limit and agreement with the analytical solution is <0.5% with
 ## Project Structure
 
 ```
-app/
-  __main__.py       Entry point — run with `python -m app`
+dryer_core/
+  __main__.py       Entry point — run with `python -m dryer_core`
   materials.py      Material dataclass + property database (PA6, PETG, PLA, …)
   model.py          Core 1D radial diffusion solver (method of lines + solve_ivp)
   dryer.py          DryerConfig, FilamentConfig, simulate(), DryingResult

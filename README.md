@@ -31,7 +31,7 @@ pip install -e ".[dev]"         # adds ruff
 ### CLI
 
 ```bash
-python -m app   # or: make run
+python -m dryer_core   # or: make run
 ```
 
 ### Interactive dashboard

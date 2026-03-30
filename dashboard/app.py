@@ -10,8 +10,8 @@ import numpy as np
 import plotly.graph_objects as go
 import streamlit as st
 
-from app.dryer import DryerConfig, FilamentConfig, simulate
-from app.materials import MATERIALS
+from dryer_core.dryer import DryerConfig, FilamentConfig, simulate
+from dryer_core.materials import MATERIALS
 
 st.set_page_config(page_title="Inline Filament Dryer", layout="wide")
 st.title("Inline Filament Dryer Simulator")

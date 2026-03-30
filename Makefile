@@ -14,7 +14,7 @@ install-dev:
 
 # Run the CLI simulation
 run:
-	python -m app
+	python -m dryer_core
 
 # Launch the interactive Streamlit dashboard
 dashboard:
@@ -22,15 +22,15 @@ dashboard:
 
 # Format code with ruff
 fmt:
-	ruff format app/ dashboard/
+	ruff format dryer_core/ dashboard/
 
 # Lint code with ruff
 lint:
-	ruff check app/ dashboard/
+	ruff check dryer_core/ dashboard/
 
 # Lint and auto-fix
 fix:
-	ruff check --fix app/ dashboard/
+	ruff check --fix dryer_core/ dashboard/
 
 # Format + lint (pre-commit check)
 check: fmt lint

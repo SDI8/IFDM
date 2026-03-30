@@ -21,13 +21,13 @@ dev = [
 ]
 
 [project.scripts]
-ifdm = "app.__main__:main"
+ifdm = "dryer_core.__main__:main"
 
 [tool.poetry]
-packages = [{include = "app"}, {include = "dashboard"}]
+packages = [{include = "dryer_core"}, {include = "dashboard"}]
 
 [tool.setuptools.packages.find]
-include = ["app", "dashboard"]
+include = ["dryer_core", "dashboard"]
 
 [tool.ruff]
 line-length = 100

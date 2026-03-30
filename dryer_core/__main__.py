@@ -1,7 +1,7 @@
 """
 Inline Filament Dryer — Numerical Experiments
 
-Run with:  python -m app
+Run with:  python -m dryer_core
 """
 
 from .dryer import DryerConfig, FilamentConfig, simulate
