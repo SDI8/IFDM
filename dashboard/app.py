@@ -11,7 +11,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from dryer_core.dryer import DryerConfig, FilamentConfig, simulate
-from dryer_core.materials import MATERIALS
+from dryer_core.materials import MATERIALS, with_fiber
 
 st.set_page_config(page_title="Inline Filament Dryer", layout="wide")
 st.title("Inline Filament Dryer Simulator")
@@ -27,6 +27,23 @@ material_key = st.sidebar.selectbox(
     index=0,
 )
 material = MATERIALS[material_key]
+
+fiber_type = st.sidebar.selectbox(
+    "Fiber reinforcement",
+    options=["None", "Glass Fiber (GF)", "Carbon Fiber (CF)"],
+    index=0,
+)
+fiber_wt_pct = 0.0
+if fiber_type != "None":
+    fiber_wt_pct = st.sidebar.slider(
+        "Fiber content [wt%]",
+        min_value=5,
+        max_value=40,
+        value=20,
+        step=5,
+    )
+    ft = "glass" if "Glass" in fiber_type else "carbon"
+    material = with_fiber(material, ft, fiber_wt_pct / 100.0)
 
 initial_moisture = st.sidebar.slider(
     "Initial moisture [wt%]",
