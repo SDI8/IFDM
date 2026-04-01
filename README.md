@@ -1,21 +1,19 @@
-![Slop banner](./banner.png)
 # Inline Filament Dryer Model (IFDM)
 **[Try the live dashboard →](https://inline-dryer.streamlit.app/)**
 
 
-A numerical model for exploring the design space of an **inline filament dryer** for 3D printing. The filament passes through a heated chamber just before the extruder; this tool simulates how much moisture is removed during transit.
+A numerical model for exploring the design space of an **inline filament dryer** for 3D printing. The filament passes through a heated chamber just before the extruder - this tool simulates how much moisture is removed during transit.
 
 ## Physics
 
-1D radial Fickian diffusion in a cylindrical cross-section, solved via method of lines (`scipy.integrate.solve_ivp`, BDF). Arrhenius-type diffusivity with a Robin (convective) surface boundary condition — the mass-transfer coefficient is computed from a Sherwood number correlation (Churchill–Bernstein), and chamber humidity is derived from ambient conditions via psychrometrics. Validated against the Crank (1975) analytical series solution (< 0.5 % error with default grid).
+1D radial Fickian diffusion in a cylindrical cross-section, solved via method of lines (`scipy.integrate.solve_ivp`, BDF). Arrhenius-type diffusivity with a Robin (convective) surface boundary condition — the mass-transfer coefficient is computed from a Sherwood number correlation (Churchill–Bernstein), and chamber humidity is derived from ambient conditions via psychrometrics. Validated against the Crank (1975) analytical series solution (< 0.5 % error).
 
 ## Current state
 
-- Core diffusion solver and dryer simulation working.
+- Diffusion solver and dryer simulation working.
 - Convective mass transfer boundary condition (Robin BC) with Sherwood/Biot calculation.
-- Material database with order-of-magnitude properties for PA6, PETG, PLA, TPU, PVA, ABS.
-- Parameter sweeps (temperature, chamber length, flow rate).
-- Interactive Streamlit dashboard with real-time Plotly charts.
+- Material database with order-of-magnitude properties.
+- Interactive Streamlit dashboard with real-time charts.
 - Analytical validation (< 0.5 % error with default grid).
 - Convergence study notebook (`convergence_study.ipynb`) — N and t_eval_count analysis.
 - Optimization study notebook (`optimization_study.ipynb`) — multi-objective optimizer with convergence, timing, and cost breakdown analysis.
@@ -42,8 +40,6 @@ python -m dryer_core   # or: make run
 make dashboard  # or: streamlit run dashboard/app.py
 # or: python -m dashboard
 ```
-
-Adjust chamber length, temperature, material, airflow, and flow rate with sidebar controls. Charts update in real time.
 
 ### Tasks (Makefile)
 
