@@ -76,18 +76,66 @@ optimization_study.ipynb     Multi-objective optimization (dlib LIPO+TR global o
 
 Properties are order-of-magnitude representative, sourced from:
 - Aniskevich, Bulderberga & Stankevics (2023), Polymers 15(12):2600
-- General polymer literature (Crank 1975, various PA6/PETG studies)
+- Chaudhary, Li & Matos (2023), Results in Materials 17:100381
+- Chabaud, Castro, Denoual & Le Duigou (2019), Additive Manufacturing 26:94-105
+- Sayer (2014), Materials Testing 56(4):325-330
+- Haghighi-Yazdi, Tang & Lee-Sullivan (2011), Polymer Degradation and Stability 96(10):1858-1865
+- General polymer literature (Crank 1975, manufacturer TDS)
+
+### Neat polymers
 
 | Material | D₀ [m²/s] | Ea [kJ/mol] | Equil. moisture | Max dry temp |
 |----------|-----------|-------------|-----------------|--------------|
-| PA6      | 6.5e-5    | 38          | 7.0 wt%         | 85 °C        |
+| PA6      | 6.5e-5    | 38          | 7.0 wt%         | 95 °C        |
+| PA12     | 2.0e-5    | 40          | 2.0 wt%         | 80 °C        |
 | PETG     | 1.2e-5    | 40          | 0.5 wt%         | 65 °C        |
-| PLA      | 1.0e-5    | 40          | 0.8 wt%         | 55 °C        |
-| TPU      | 2.0e-5    | 38          | 1.2 wt%         | 50 °C        |
-| PVA      | 8.0e-5    | 36          | 10.0 wt%        | 60 °C        |
-| ABS      | 0.8e-5    | 38          | 0.4 wt%         | 80 °C        |
+| PLA      | 1.0e-5    | 40          | 0.8 wt%         | 65 °C        |
+| TPU      | 2.0e-5    | 38          | 1.2 wt%         | 70 °C        |
+| PVA      | 8.0e-5    | 36          | 10.0 wt%        | 50 °C        |
+| ABS      | 0.8e-5    | 38          | 0.4 wt%         | 100 °C       |
+| PC       | 0.5e-5    | 42          | 0.3 wt%         | 120 °C       |
+| ASA      | 1.0e-5    | 38          | 0.6 wt%         | 95 °C        |
+| PPA      | 3.5e-5    | 42          | 3.0 wt%         | 120 °C       |
+
+### Fiber-reinforced variants
+
+Fiber-reinforced materials are **not stored as separate database entries**.
+Instead, the `with_fiber(base, fiber_type, weight_fraction)` function derives
+adjusted properties at runtime from any neat base polymer:
+
+- **Equilibrium moisture** × (1 − Vf) — fibers are non-absorbing.
+- **D₀** × (1 − Vf) — tortuous diffusion path around fibers.
+- **Ea** unchanged — same polymer backbone.
+- **Density** via rule of mixtures: ρ_matrix·(1−Vf) + ρ_fiber·Vf  
+  (glass ≈ 2500 kg/m³, carbon ≈ 1800 kg/m³).
+- Weight-to-volume fraction conversion is handled internally.
+
+The dashboard exposes fiber type (None / Glass / Carbon) and fiber content
+(5–40 wt%) sliders for interactive exploration.
 
 Refine with experimental data for specific filament brands as needed.
+
+### Arrhenius Fitting
+
+D₀ and Ea are not directly measured — they are fit coefficients in the
+Arrhenius relation  D(T) = D₀ · exp(−Ea / (R·T)).
+
+**Procedure:**
+1. Gather 1–2 literature D(T) reference points per material (e.g. D at 23 °C
+   from Aniskevich 2023).
+2. **Single reference point + known Ea range:** fix Ea from literature, solve
+   D₀ = D_ref / exp(−Ea/(R·T_ref)).
+3. **Two reference points** (D at T₁, D at T₂): solve  Ea = R·ln(D₁/D₂) /
+   (1/T₂ − 1/T₁),  then back-calculate D₀.
+4. **Fiber-reinforced variants** are derived at runtime via `with_fiber()`
+   rather than stored as separate entries.  The corrections are:
+   - Equilibrium moisture scaled by (1 − Vf) — fibers are non-absorbing.
+   - D_composite ≈ D_matrix · (1 − Vf) for the tortuous diffusion path;
+     Ea ≈ Ea_matrix (same polymer backbone).
+   - Density via rule of mixtures.
+5. All values are order-of-magnitude representative of typical commercial FFF
+   filaments.  Specific brands and fiber loadings (CF ~15–20 wt%, GF ~30 wt%)
+   may differ.
 
 ## Dependencies
 
@@ -177,3 +225,22 @@ naturally; needs per-material data.
    58(5):18–27.
    — Temperature-dependent correlation for water vapor diffusivity in air,
    needed to evaluate the Schmidt and Sherwood numbers.
+6. Chaudhary, B., Li, H., & Matos, H. (2023). "Long-term mechanical performance
+   of 3D printed thermoplastics in seawater environments." Results in Materials
+   17:100381.
+   — Activation energies (exponential-fit method), mass saturation, and Tg for
+   Nylon, Nylon+CF, ABS, ABS+CF, PLA, PCTG, PETG, ASA.
+7. Chabaud, G., Castro, M., Denoual, C., & Le Duigou, A. (2019).
+   "Hygromechanical properties of 3D printed continuous carbon and glass fibre
+   reinforced polyamide composite for outdoor structural applications." Additive
+   Manufacturing 26:94-105.
+   — Moisture uptake (5–6 wt% at 98 % RH) for continuous CF/PA and GF/PA
+   composites.
+8. Sayer, S. (2014). "Mechanical performance of polyamid 66 and influence of
+   glass fiber content on moisture absorption." Materials Testing 56(4):325-330.
+   — Glass-fiber volume-fraction proportional reduction of equilibrium moisture
+   content in polyamide composites.
+9. Haghighi-Yazdi, M., Tang, J.K.Y., & Lee-Sullivan, P. (2011). "Moisture uptake
+   of a polycarbonate blend exposed to hygrothermal aging." Polymer Degradation
+   and Stability 96(10):1858-1865.
+   — Diffusion coefficients and equilibrium moisture for polycarbonate.

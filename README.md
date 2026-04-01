@@ -1,7 +1,9 @@
+![Slop banner](./banner.png)
 # Inline Filament Dryer Model (IFDM)
 **[Try the live dashboard →](https://inline-dryer.streamlit.app/)**
 
-Numerical model for exploring the design space of an **inline filament dryer** for 3D printing. The filament passes through a heated chamber just before the extruder; this tool simulates how much moisture is removed during transit.
+
+A numerical model for exploring the design space of an **inline filament dryer** for 3D printing. The filament passes through a heated chamber just before the extruder; this tool simulates how much moisture is removed during transit.
 
 ## Physics
 
