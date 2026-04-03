@@ -24,7 +24,10 @@ Sources
     polycarbonate blend exposed to hygrothermal aging." Polymer Degradation
     and Stability 96(10):1858-1865.  doi:10.1016/j.polymdegradstab.2011.07.010
 [6] Crank, J. (1975). The Mathematics of Diffusion. Oxford University Press.
-[7] General polymer literature / manufacturer TDS.
+[7] Manufacturer TDS.
+[8] Manufacturer drying guides (Stratasys, BASF Forward AM, Polymaker, eSUN)
+    and processing literature — maximum moisture content thresholds above which
+    visible print defects (bubbling, stringing, poor adhesion) occur.
 
 Arrhenius fitting
 -----------------
@@ -69,6 +72,9 @@ class Material:
         max_temp: Maximum recommended drying temperature [°C] (below
             degradation / glass transition onset).
         density: Approximate bulk density [kg/m³].
+        max_print_moisture: Maximum moisture content for acceptable FDM print
+            quality (mass fraction).  Above this threshold, steam bubbling
+            and surface defects become visible at typical nozzle temperatures.
     """
 
     name: str
@@ -77,6 +83,7 @@ class Material:
     equilibrium_moisture: float
     max_temp: float
     density: float
+    max_print_moisture: float
 
     def diffusivity(self, T_celsius: float) -> float:
         """Moisture diffusion coefficient at temperature T via Arrhenius.
@@ -146,6 +153,7 @@ def with_fiber(
         equilibrium_moisture=base.equilibrium_moisture * (1.0 - vf),
         max_temp=base.max_temp,
         density=rho_m * (1.0 - vf) + rho_fiber * vf,
+        max_print_moisture=base.max_print_moisture,
     )
 
 
@@ -159,56 +167,62 @@ def with_fiber(
 
 PA6 = Material(
     name="PA6 (Nylon 6)",
-    D0=6.5e-5,  # m²/s  (pre-exponential, fitted)
-    Ea=38_000.0,  # J/mol (~38 kJ/mol)
-    equilibrium_moisture=0.07,  # ~7 wt% at high RH
-    max_temp=95.0,  # °C
-    density=1140.0,  # kg/m³
+    D0=6.5e-5,  # m²/s  (fitted from [1] D_ref + [2] Ea)
+    Ea=38_000.0,  # J/mol (~38 kJ/mol)  Source: [2]
+    equilibrium_moisture=0.07,  # ~7 wt% at high RH  Source: [1]
+    max_temp=95.0,  # °C  Source: [7]
+    density=1140.0,  # kg/m³  Source: [7]
+    max_print_moisture=0.002,  # 0.2 wt%  Source: [8]
 )
 
 PETG = Material(
     name="PETG",
-    D0=1.2e-5,  # m²/s  (pre-exponential, fitted)
-    Ea=40_000.0,  # J/mol (~40 kJ/mol)
-    equilibrium_moisture=0.005,  # ~0.5 wt%
-    max_temp=65.0,  # °C
-    density=1270.0,  # kg/m³
+    D0=1.2e-5,  # m²/s  (fitted from [1] D_ref + [2] Ea)
+    Ea=40_000.0,  # J/mol  Source: [2]
+    equilibrium_moisture=0.005,  # ~0.5 wt%  Source: [1]
+    max_temp=65.0,  # °C  Source: [7]
+    density=1270.0,  # kg/m³  Source: [7]
+    max_print_moisture=0.002,  # 0.2 wt%  Source: [8]
 )
 
 PLA = Material(
     name="PLA",
-    D0=1.0e-5,
-    Ea=40_000.0,
-    equilibrium_moisture=0.008,  # ~0.8 wt%
-    max_temp=65.0,
-    density=1240.0,
+    D0=1.0e-5,  # m²/s  (fitted from [1] D_ref + [2] Ea)
+    Ea=40_000.0,  # J/mol  Source: [2]
+    equilibrium_moisture=0.008,  # ~0.8 wt%  Source: [1]
+    max_temp=65.0,  # °C  Source: [7]
+    density=1240.0,  # kg/m³  Source: [7]
+    max_print_moisture=0.003,  # 0.3 wt%  Source: [8]
 )
 
 TPU = Material(
     name="TPU",
-    D0=2.0e-5,
-    Ea=38_000.0,
-    equilibrium_moisture=0.012,  # ~1.2 wt%
-    max_temp=70.0,
-    density=1210.0,
+    D0=2.0e-5,  # m²/s  Source: [7]
+    Ea=38_000.0,  # J/mol  Source: [7]
+    equilibrium_moisture=0.012,  # ~1.2 wt%  Source: [7]
+    max_temp=70.0,  # °C  Source: [7]
+    density=1210.0,  # kg/m³  Source: [7]
+    max_print_moisture=0.003,  # 0.3 wt%  Source: [8]
 )
 
 PVA = Material(
     name="PVA",
-    D0=8.0e-5,
-    Ea=36_000.0,
-    equilibrium_moisture=0.10,  # ~10 wt%
-    max_temp=50.0,
-    density=1190.0,
+    D0=8.0e-5,  # m²/s  Source: [7]
+    Ea=36_000.0,  # J/mol  Source: [7]
+    equilibrium_moisture=0.10,  # ~10 wt%  Source: [7]
+    max_temp=50.0,  # °C  Source: [7]
+    density=1190.0,  # kg/m³  Source: [7]
+    max_print_moisture=0.005,  # 0.5 wt%  Source: [8]
 )
 
 ABS = Material(
     name="ABS",
-    D0=0.8e-5,
-    Ea=38_000.0,
-    equilibrium_moisture=0.004,  # ~0.4 wt%
-    max_temp=100.0,
-    density=1040.0,
+    D0=0.8e-5,  # m²/s  (fitted from [1] D_ref + [2] Ea)
+    Ea=38_000.0,  # J/mol  Source: [2]
+    equilibrium_moisture=0.004,  # ~0.4 wt%  Source: [1]
+    max_temp=100.0,  # °C  Source: [7]
+    density=1040.0,  # kg/m³  Source: [7]
+    max_print_moisture=0.002,  # 0.2 wt%  Source: [8]
 )
 
 PA12 = Material(
@@ -218,6 +232,7 @@ PA12 = Material(
     equilibrium_moisture=0.02,  # ~2 wt%  Source: [1]
     max_temp=80.0,  # °C  Source: [7]
     density=1010.0,  # kg/m³  Source: [7]
+    max_print_moisture=0.002,  # 0.2 wt%  Source: [8]
 )
 
 PC = Material(
@@ -227,6 +242,7 @@ PC = Material(
     equilibrium_moisture=0.003,  # ~0.3 wt%  Source: [5]
     max_temp=120.0,  # °C  Source: [7]
     density=1200.0,  # kg/m³  Source: [7]
+    max_print_moisture=0.0002,  # 0.02 wt%  Source: [8] — hydrolysis-sensitive
 )
 
 ASA = Material(
@@ -236,6 +252,7 @@ ASA = Material(
     equilibrium_moisture=0.006,  # ~0.6 wt%  Source: [2]
     max_temp=95.0,  # °C  Source: [7]
     density=1070.0,  # kg/m³  Source: [7]
+    max_print_moisture=0.002,  # 0.2 wt%  Source: [8]
 )
 
 PPA = Material(
@@ -245,6 +262,7 @@ PPA = Material(
     equilibrium_moisture=0.03,  # ~3 wt%  Source: [2][7]
     max_temp=120.0,  # °C  Source: [7]
     density=1180.0,  # kg/m³  Source: [7]
+    max_print_moisture=0.001,  # 0.1 wt%  Source: [8]
 )
 
 # Convenience lookup — neat (unreinforced) base polymers only.

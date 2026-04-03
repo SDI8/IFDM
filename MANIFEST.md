@@ -60,7 +60,6 @@ dryer_core/
   model.py          Core 1D radial diffusion solver (method of lines + solve_ivp)
   dryer.py          DryerConfig, FilamentConfig, simulate(), DryingResult
                     Air properties, psychrometrics, Sherwood/Biot calculation
-  experiments.py    Parameter sweep and material comparison helpers
 
 dashboard/
   __main__.py       Entry point — run with `python -m dashboard`
@@ -80,22 +79,28 @@ Properties are order-of-magnitude representative, sourced from:
 - Chabaud, Castro, Denoual & Le Duigou (2019), Additive Manufacturing 26:94-105
 - Sayer (2014), Materials Testing 56(4):325-330
 - Haghighi-Yazdi, Tang & Lee-Sullivan (2011), Polymer Degradation and Stability 96(10):1858-1865
+- Manufacturer drying/processing guides (Stratasys, BASF Forward AM, Polymaker, eSUN)
 - General polymer literature (Crank 1975, manufacturer TDS)
 
 ### Neat polymers
 
-| Material | D₀ [m²/s] | Ea [kJ/mol] | Equil. moisture | Max dry temp |
-|----------|-----------|-------------|-----------------|--------------|
-| PA6      | 6.5e-5    | 38          | 7.0 wt%         | 95 °C        |
-| PA12     | 2.0e-5    | 40          | 2.0 wt%         | 80 °C        |
-| PETG     | 1.2e-5    | 40          | 0.5 wt%         | 65 °C        |
-| PLA      | 1.0e-5    | 40          | 0.8 wt%         | 65 °C        |
-| TPU      | 2.0e-5    | 38          | 1.2 wt%         | 70 °C        |
-| PVA      | 8.0e-5    | 36          | 10.0 wt%        | 50 °C        |
-| ABS      | 0.8e-5    | 38          | 0.4 wt%         | 100 °C       |
-| PC       | 0.5e-5    | 42          | 0.3 wt%         | 120 °C       |
-| ASA      | 1.0e-5    | 38          | 0.6 wt%         | 95 °C        |
-| PPA      | 3.5e-5    | 42          | 3.0 wt%         | 120 °C       |
+| Material | D₀ [m²/s] | Ea [kJ/mol] | Equil. moisture | Max print moisture | Max dry temp |
+|----------|-----------|-------------|-----------------|--------------------|--------------| 
+| PA6      | 6.5e-5    | 38          | 7.0 wt%         | 0.20 wt%           | 95 °C        |
+| PA12     | 2.0e-5    | 40          | 2.0 wt%         | 0.20 wt%           | 80 °C        |
+| PETG     | 1.2e-5    | 40          | 0.5 wt%         | 0.20 wt%           | 65 °C        |
+| PLA      | 1.0e-5    | 40          | 0.8 wt%         | 0.30 wt%           | 65 °C        |
+| TPU      | 2.0e-5    | 38          | 1.2 wt%         | 0.30 wt%           | 70 °C        |
+| PVA      | 8.0e-5    | 36          | 10.0 wt%        | 0.50 wt%           | 50 °C        |
+| ABS      | 0.8e-5    | 38          | 0.4 wt%         | 0.20 wt%           | 100 °C       |
+| PC       | 0.5e-5    | 42          | 0.3 wt%         | 0.02 wt%           | 120 °C       |
+| ASA      | 1.0e-5    | 38          | 0.6 wt%         | 0.20 wt%           | 95 °C        |
+| PPA      | 3.5e-5    | 42          | 3.0 wt%         | 0.10 wt%           | 120 °C       |
+
+**Max print moisture** is the approximate upper moisture limit for acceptable
+FDM print quality (no visible bubbling/stringing). Values are from manufacturer
+drying guides and processing literature.  PC is notably strict (0.02 wt%) due
+to hydrolytic chain scission at its high nozzle temperature.
 
 ### Fiber-reinforced variants
 
@@ -190,7 +195,11 @@ analysis of convergence, timing, and cost component behaviour.
   (∝ ΔT) and fan power (∝ v²), normalized to [0, 1].
 
 An optional `target_moisture` soft constraint adds a large penalty (100×) when
-the final moisture exceeds the target.
+the final moisture exceeds the target.  When no explicit target is set, the
+optimizer defaults to `material.max_print_moisture` — the maximum moisture
+content for acceptable FDM print quality.  When no explicit target is set, the
+optimizer defaults to `material.max_print_moisture` — the maximum moisture
+content for acceptable FDM print quality.
 
 Bounds are user-configurable; the temperature upper bound is automatically
 clamped to `material.max_temp`.
@@ -244,3 +253,11 @@ naturally; needs per-material data.
    of a polycarbonate blend exposed to hygrothermal aging." Polymer Degradation
    and Stability 96(10):1858-1865.
    — Diffusion coefficients and equilibrium moisture for polycarbonate.
+10. Manufacturer drying/processing guides (Stratasys, BASF Forward AM, Polymaker,
+    eSUN).
+    — Maximum moisture content thresholds for acceptable FDM print quality
+    (bubbling, stringing, poor layer adhesion).
+10. Manufacturer drying/processing guides (Stratasys, BASF Forward AM, Polymaker,
+    eSUN).
+    — Maximum moisture content thresholds for acceptable FDM print quality
+    (bubbling, stringing, poor layer adhesion).

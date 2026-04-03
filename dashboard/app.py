@@ -118,7 +118,7 @@ filament = FilamentConfig(
     flow_rate=flow_rate,
 )
 
-result = simulate(dryer, filament, N=20, t_eval_count=100)
+result = simulate(dryer, filament)
 
 # ---------------------------------------------------------------------------
 # Key metrics
@@ -130,6 +130,19 @@ col2.metric("Drying efficiency", f"{result.drying_efficiency * 100:.1f}%")
 col3.metric("Transit time", f"{result.transit_time:.1f} s")
 col4.metric("Fourier number", f"{result.fourier_number:.2e}")
 col5.metric("Biot (mass)", f"{result.biot_mass:.2f}")
+
+# Printability check
+threshold_pct = material.max_print_moisture * 100
+if result.final_moisture > material.max_print_moisture:
+    st.warning(
+        f"Final moisture ({result.final_moisture * 100:.2f} wt%) exceeds "
+        f"max print threshold ({threshold_pct:.2f} wt%) for {material.name}."
+    )
+else:
+    st.success(
+        f"Final moisture ({result.final_moisture * 100:.2f} wt%) is below "
+        f"max print threshold ({threshold_pct:.2f} wt%) for {material.name}."
+    )
 
 # ---------------------------------------------------------------------------
 # Charts
@@ -169,6 +182,13 @@ fig_radial.update_layout(
     height=400,
     margin=dict(t=40, b=40),
 )
+fig_radial.add_hline(
+    y=threshold_pct,
+    line_dash="dot",
+    line_color="red",
+    annotation_text="Max print moisture",
+    annotation_position="top left",
+)
 left.plotly_chart(fig_radial, width="stretch")
 
 # --- Moisture vs time ---
@@ -194,6 +214,13 @@ fig_time.update_layout(
     yaxis_title="Average moisture [wt%]",
     height=400,
     margin=dict(t=40, b=40),
+)
+fig_time.add_hline(
+    y=threshold_pct,
+    line_dash="dot",
+    line_color="red",
+    annotation_text="Max print moisture",
+    annotation_position="top left",
 )
 right.plotly_chart(fig_time, width="stretch")
 
@@ -232,40 +259,6 @@ fig_cross.update_layout(
 )
 st.plotly_chart(fig_cross, width="stretch")
 
-# ---------------------------------------------------------------------------
-# Material comparison (expandable)
-# ---------------------------------------------------------------------------
-
-with st.expander("Compare all materials at current dryer settings"):
-    fig_cmp = go.Figure()
-    for key, mat in MATERIALS.items():
-        fil = FilamentConfig(
-            material=mat,
-            initial_moisture=min(initial_moisture / 100.0, mat.equilibrium_moisture),
-            flow_rate=flow_rate,
-        )
-        res = simulate(dryer, fil)
-        r_mm_cmp = res.diffusion.r * 1e3
-        C_final_cmp = res.diffusion.C[:, -1] * 100
-        eff = res.drying_efficiency * 100
-        fig_cmp.add_trace(
-            go.Scatter(
-                x=r_mm_cmp,
-                y=C_final_cmp,
-                mode="lines",
-                name=f"{mat.name} ({eff:.1f}% removed)",
-                line=dict(width=2),
-            )
-        )
-    fig_cmp.update_layout(
-        title="Material comparison — Radial profiles after drying",
-        xaxis_title="Radial position [mm]",
-        yaxis_title="Moisture content [wt%]",
-        yaxis_rangemode="tozero",
-        height=450,
-        margin=dict(t=40, b=40),
-    )
-    st.plotly_chart(fig_cmp, width="stretch")
 
 # ---------------------------------------------------------------------------
 # Detailed summary
